@@ -28,8 +28,7 @@
 ### 本地运行
 1. **下载项目代码**：将本项目的代码克隆到本地，或者下载 ZIP 文件并解压。
 ```bash
-git clone https://github.com/your-repo/pet-health-management-web.git
-cd pet-health-management-web
+
 ```
 2. **打开项目**：使用任意文本编辑器（如 Visual Studio Code）打开项目文件夹。
 3. **运行项目**：在浏览器中直接打开 `index.html` 文件，即可看到宠物健康管理Web端的界面。
