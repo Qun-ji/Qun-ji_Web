@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>宠物健康管理Web端</title>
+    <style>
+        /* 全局样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        :root {
+            --primary-blue: #4A90E2;
+            --dark-blue: #1A2B4A;
+            --light-blue: #E8F2FF;
+            --alert-red: #FF6B6B;
+            --light-gray: #f5f5f5;
+            --dark-gray: #333;
+        }
+
+        body {
+            background-color: #f9f9f9;
+            color: #333;
+            line-height: 1.6;
+            scroll-behavior: smooth;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* 顶部导航栏 */
+        .top-bar {
+            background-color: var(--primary-blue);
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .user-panel {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-blue);
+            font-size: 20px;
+            margin-right: 10px;
+        }
+
+        /* 侧边栏导航 */
+        .sidebar {
+            width: 250px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 20px 0;
+            position: fixed;
+            top: 60px;
+            bottom: 20px;
+            left: 20px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+        .nav-header {
+            padding: 0 20px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--dark-gray);
+        }
+
+        .nav-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            color: #666;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background-color: var(--light-blue);
+            color: var(--primary-blue);
+        }
+
+        .nav-item.active {
+            background-color: var(--light-blue);
+            color: var(--primary-blue);
+            border-left: 3px solid var(--primary-blue);
+        }
+
+        .nav-icon {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+
+        /* 主内容区域 */
+        .main-content {
+            margin-left: 270px;
+            padding: 80px 20px 20px;
+        }
+
+        /* 总览仪表盘 */
+        .dashboard {
+            background-color: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .dashboard-title {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .time-filter {
+            display: flex;
+            background-color: var(--light-blue);
+            border-radius: 20px;
+            padding: 5px;
+        }
+
+        .time-option {
+            padding: 5px 15px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .time-option.active {
+            background-color: var(--primary-blue);
+            color: white;
+        }
+
+        .alert-banner {
+            background-color: var(--alert-red);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .alert-message {
+            font-weight: bold;
+        }
+
+        .alert-close {
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .dashboard-card {
+            background-color: var(--light-blue);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--dark-gray);
+        }
+
+        .card-content {
+            font-size: 14px;
+        }
+
+        .data-point {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .data-label {
+            color: #666;
+        }
+
+        .data-value {
+            font-weight: bold;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .status-normal {
+            background-color: #4CAF50;
+        }
+
+        .status-warning {
+            background-color: #FFC107;
+        }
+
+        .status-alert {
+            background-color: var(--alert-red);
+        }
+
+        /* 健康数据中心 */
+        .health-center {
+            background-color: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            height: 300px;
+            background-color: var(--light-blue);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-placeholder {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #888;
+            text-align: center;
+        }
+
+        .health-metrics {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .metric-card {
+            background-color: var(--light-blue);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary-blue);
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .reference-range {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        /* 行为监测中心 */
+        .behavior-center {
+            background-color: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        .radar-chart {
+            height: 300px;
+            background-color: var(--light-blue);
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .video-gallery {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .video-item {
+            background-color: var(--light-blue);
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .video-thumbnail {
+            height: 120px;
+            background-color: #ddd;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #888;
+        }
+
+        .video-title {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .video-time {
+            font-size: 12px;
+            color: #888;
+        }
+
+        /* 环境监控面板 */
+        .environment-panel {
+            background-color: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        .environment-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .environment-card {
+            background-color: var(--light-blue);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+
+        .environment-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .environment-label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .device-list {
+            margin-top: 20px;
+        }
+
+        .device-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .device-name {
+            display: flex;
+            align-items: center;
+        }
+
+        .device-status {
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: 10px;
+        }
+
+        .status-online {
+            background-color: #e6f7e6;
+            color: #4CAF50;
+        }
+
+        .status-offline {
+            background-color: #ffebee;
+            color: var(--alert-red);
+        }
+
+        .control-btn {
+            background-color: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .control-btn:hover {
+            background-color: var(--dark-blue);
+        }
+
+        /* 位置追踪系统 */
+        .tracking-system {
+            background-color: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .map-container {
+            height: 400px;
+            background-color: #eee;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #888;
+        }
+
+        .geofence-settings {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .geofence-card {
+            background-color: var(--light-blue);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .pet-list {
+            margin-top: 20px;
+        }
+
+        .pet-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .pet-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            margin-right: 10px;
+        }
+
+        .pet-info {
+            flex: 1;
+        }
+
+        .pet-name {
+            font-weight: bold;
+        }
+
+        .pet-location {
+            font-size: 12px;
+            color: #888;
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .health-metrics {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .environment-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 200px;
+            }
+
+            .main-content {
+                margin-left: 220px;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .video-gallery {
+                grid-template-columns: 1fr;
+            }
+
+            .geofence-settings {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /*    图片视频尺寸*/
+        .img1 {
+            width: 1020px;
+            height: 400px;
+        }
+
+        img {
+            width: 310px;
+            height: 120px;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+    <!-- 顶部导航栏 -->
+    <div class="top-bar">
+        <div class="logo">宠物健康管理</div>
+        <div class="user-panel">
+            <div class="user-avatar">👤</div>
+        </div>
+    </div>
+
+    <!-- 侧边栏导航 -->
+    <div class="sidebar">
+        <div class="nav-header">主菜单</div>
+        <div class="nav-item active" data-target="dashboard">
+            <div class="nav-icon">📊</div>
+            <div>总览仪表盘</div>
+        </div>
+        <div class="nav-item" data-target="health-center">
+            <div class="nav-icon">❤️</div>
+            <div>健康数据中心</div>
+        </div>
+        <div class="nav-item" data-target="behavior-center">
+            <div class="nav-icon">🐾</div>
+            <div>行为监测中心</div>
+        </div>
+        <div class="nav-item" data-target="environment-panel">
+            <div class="nav-icon">🌡️</div>
+            <div>环境监控面板</div>
+        </div>
+        <div class="nav-item" data-target="tracking-system">
+            <div class="nav-icon">🗺️</div>
+            <div>位置追踪系统</div>
+        </div>
+
+    </div>
+
+    <!-- 主内容区域 -->
+    <div class="main-content">
+        <!-- 总览仪表盘 -->
+        <div class="dashboard" id="dashboard">
+            <div class="dashboard-header">
+                <div class="dashboard-title">总览仪表盘</div>
+                <div class="time-filter">
+                    <div class="time-option active">24小时</div>
+                </div>
+            </div>
+
+            <div class="alert-banner">
+                <div class="alert-message">紧急通知：小白的体温持续高于正常范围，请及时处理！</div>
+                <div class="alert-close">×</div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="dashboard-card">
+                    <div class="card-title">健康状态速览</div>
+                    <div class="card-content">
+                        <div class="data-point">
+                            <div>
+                                <span class="status-indicator status-normal"></span>体温正常
+                            </div>
+                            <div class="data-value">38.2°C</div>
+                        </div>
+                        <div class="data-point">
+                            <div>
+                                <span class="status-indicator status-warning"></span>心率偏高
+                            </div>
+                            <div class="data-value">95</div>
+                        </div>
+                        <div class="data-point">
+                            <div>
+                                <span class="status-indicator status-normal"></span>活动量
+                            </div>
+                            <div class="data-value">7,245 步</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="card-title">当日行为评分</div>
+                    <div class="card-content">
+                        <div class="data-point">
+                            <div class="data-label">睡眠时长</div>
+                            <div class="data-value">8.5 小时</div>
+                        </div>
+                        <div class="data-point">
+                            <div class="data-label">异常吠叫</div>
+                            <div class="data-value">3 次</div>
+                        </div>
+                        <div class="data-point">
+                            <div class="data-label">活动强度</div>
+                            <div class="data-value">中等</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="card-title">环境监控</div>
+                    <div class="card-content">
+                        <div class="data-point">
+                            <div class="data-label">室内温度</div>
+                            <div class="data-value">24°C</div>
+                        </div>
+                        <div class="data-point">
+                            <div class="data-label">湿度</div>
+                            <div class="data-value">45%</div>
+                        </div>
+                        <div class="data-point">
+                            <div class="data-label">空气质量</div>
+                            <div class="data-value">良好</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 健康数据中心 -->
+        <div class="health-center" id="health-center">
+            <div class="dashboard-header">
+                <div class="dashboard-title">健康数据中心</div>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="health-chart"></canvas>
+            </div>
+
+            <div class="health-metrics">
+                <div class="metric-card">
+                    <div class="metric-value">38.2°C</div>
+                    <div class="metric-label">体温</div>
+                    <div class="reference-range">正常范围: 37.5-39.0°C</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">95</div>
+                    <div class="metric-label">心率</div>
+                    <div class="reference-range">正常范围: 70-110 次/分钟</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">18</div>
+                    <div class="metric-label">呼吸频率</div>
+                    <div class="reference-range">正常范围: 15-30 次/分钟</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">7,245</div>
+                    <div class="metric-label">活动量</div>
+                    <div class="reference-range">目标: 10,000 步</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 行为监测中心 -->
+        <div class="behavior-center" id="behavior-center">
+            <div class="dashboard-header">
+                <div class="dashboard-title">行为监测中心</div>
+            </div>
+
+            <div class="radar-chart">
+                <canvas id="radar-chart"></canvas>
+            </div>
+
+            <div class="video-gallery">
+                <div class="video-item">
+                    <div class="video-thumbnail">
+                        <img src="grab.jpg">
+                    </div>
+                    <div class="video-title">持续抓挠耳朵</div>
+                    <div class="video-time">15:22</div>
+                </div>
+                <div class="video-item">
+                    <div class="video-thumbnail">
+                        <img src="bark.jpg">
+                    </div>
+                    <div class="video-title">过度吠叫</div>
+                    <div class="video-time">10:15</div>
+                </div>
+                <div class="video-item">
+                    <div class="video-thumbnail">
+                        <img src="quite.jpg">
+                    </div>
+                    <div class="video-title">活动减少</div>
+                    <div class="video-time">08:30</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 环境监控面板 -->
+        <div class="environment-panel" id="environment-panel">
+            <div class="dashboard-header">
+                <div class="dashboard-title">环境监控面板</div>
+            </div>
+
+            <div class="environment-grid">
+                <div class="environment-card">
+                    <div class="environment-value">24°C</div>
+                    <div class="environment-label">温度</div>
+                </div>
+                <div class="environment-card">
+                    <div class="environment-value">45%</div>
+                    <div class="environment-label">湿度</div>
+                </div>
+                <div class="environment-card">
+                    <div class="environment-value">良好</div>
+                    <div class="environment-label">空气质量</div>
+                </div>
+                <div class="environment-card">
+                    <div class="environment-value">安静</div>
+                    <div class="environment-label">噪音水平</div>
+                </div>
+            </div>
+
+            <div class="device-list">
+                <div class="device-item">
+                    <div class="device-name">智能摄像头 1
+                        <span class="device-status status-online">在线</span>
+                    </div>
+                    <div class="device-actions">
+                        <button class="control-btn">查看</button>
+                    </div>
+                </div>
+                <div class="device-item">
+                    <div class="device-name">自动喂食器
+                        <span class="device-status status-online">在线</span>
+                    </div>
+                    <div class="device-actions">
+                        <button class="control-btn">控制</button>
+                    </div>
+                </div>
+                <div class="device-item">
+                    <div class="device-name">环境传感器
+                        <span class="device-status status-online">在线</span>
+                    </div>
+                    <div class="device-actions">
+                        <button class="control-btn">数据</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 位置追踪系统 -->
+        <div class="tracking-system" id="tracking-system">
+            <div class="dashboard-header">
+                <div class="dashboard-title">位置追踪系统</div>
+            </div>
+
+            <div class="map-container">
+                <a href="https://ditu.amap.com/">
+                    <img src="PetArk_loc2.jpg" class="img1">
+                </a>
+            </div>
+
+            <div class="geofence-settings">
+                <div class="geofence-card">
+                    <div class="card-title">电子围栏设置</div>
+                    <div class="card-content">
+                        <div class="data-point">
+                            <div class="data-label">安全区域</div>
+                            <div class="data-value">半径 50 米</div>
+                        </div>
+                        <div class="data-point">
+                            <div class="data-label">预警区域</div>
+                            <div class="data-value">半径 100 米</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="geofence-card">
+                    <div class="card-title">历史轨迹</div>
+                    <div class="card-content">
+                        <div class="data-point">
+                            <div class="data-label">今日活动范围</div>
+                            <div class="data-value">0.5 平方公里</div>
+                        </div>
+                        <div class="data-point">
+                            <div class="data-label">最大偏离距离</div>
+                            <div class="data-value">0.3 公里</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pet-list">
+                <div class="pet-item">
+                    <div class="pet-icon">🐶</div>
+                    <div class="pet-info">
+                        <div class="pet-name">小白</div>
+                        <div class="pet-location">当前位置: 家中客厅</div>
+                    </div>
+                    <div class="pet-status status-normal">正常</div>
+                </div>
+                <div class="pet-item">
+                    <div class="pet-icon">🐱</div>
+                    <div class="pet-info">
+                        <div class="pet-name">小花</div>
+                        <div class="pet-location">当前位置: 花园</div>
+                    </div>
+                    <div class="pet-status status-normal">正常</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // 角色切换功能
+    // 医生模式按钮已删除，此部分代码可移除
+
+    // 时间筛选器功能
+    document.querySelectorAll('.time-option').forEach(option => {
+        option.addEventListener('click', function () {
+            document.querySelectorAll('.time-option').forEach(opt => {
+                opt.classList.remove('active');
+            });
+            this.classList.add('active');
+
+            // 更新数据展示
+            const timeRange = this.textContent;
+            alert(`切换到${timeRange}数据视图`);
+        });
+    });
+
+    // 关闭警报通知
+    document.querySelector('.alert-close').addEventListener('click', function () {
+        document.querySelector('.alert-banner').style.display = 'none';
+    });
+
+    // 导航项点击事件
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', function () {
+            document.querySelectorAll('.nav-item').forEach(navItem => {
+                navItem.classList.remove('active');
+            });
+            this.classList.add('active');
+
+            const targetId = this.dataset.target;
+            const targetElement = document.getElementById(targetId);
+            if (targetElement) {
+                targetElement.scrollIntoView({
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+
+    // 模拟数据更新
+    setInterval(() => {
+        // 模拟心率变化
+        const heartRateValue = document.querySelector('.metric-card:nth-child(2) .metric-value');
+        const currentHeartRate = parseInt(heartRateValue.textContent);
+        const newHeartRate = Math.floor(currentHeartRate + (Math.random() - 0.5) * 4);
+        heartRateValue.textContent = newHeartRate;
+
+        // 模拟活动量变化
+        const activityValue = document.querySelector('.metric-card:nth-child(4) .metric-value');
+        const currentActivity = parseInt(activityValue.textContent.replace(',', ''));
+        const newActivity = currentActivity + Math.floor(Math.random() * 100);
+        activityValue.textContent = newActivity.toLocaleString();
+    }, 5000);
+
+    // 生成健康数据中心模拟图表
+    const ctx = document.getElementById('health-chart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'],
+            datasets: [{
+                label: '心率',
+                data: [80, 85, 90, 95, 100, 95, 90],
+                borderColor: 'blue',
+                backgroundColor: 'rgba(0, 0, 255, 0.1)',
+                fill: true
+            }, {
+                label: '呼吸频率',
+                data: [15, 16, 17, 18, 19, 18, 17],
+                borderColor: 'green',
+                backgroundColor: 'rgba(0, 255, 0, 0.1)',
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // 生成行为监测中心模拟雷达图
+    const radarCtx = document.getElementById('radar-chart').getContext('2d');
+    new Chart(radarCtx, {
+        type: 'radar',
+        data: {
+            labels: ['睡眠', '活动', '进食', '社交', '休息'],
+            datasets: [{
+                label: '行为分布',
+                data: [70, 80, 60, 50, 75],
+                borderColor: 'purple',
+                backgroundColor: 'rgba(128, 0, 128, 0.1)',
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+</script>
+</body>
+
+</html>
